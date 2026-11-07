@@ -1,0 +1,31 @@
+name: Discipline bot poller
+
+on:
+  schedule:
+    # Every 5 minutes, all day, every day. Times are evaluated in UTC
+    # by GitHub, but the script itself compares against Nepal time
+    # (Asia/Kathmandu) internally -- no manual UTC conversion needed
+    # here, and no guarantee the run lands exactly on the minute.
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}  # lets you trigger a manual test run from the Actions tab
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run poller
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+        run: python poller.py
